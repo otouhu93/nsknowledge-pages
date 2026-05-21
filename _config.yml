@@ -1,0 +1,14 @@
+title: NSknowledge Daily
+description: AI News Daily Report
+baseurl: "/nsknowledge-pages"
+url: "https://otouhu93.github.io"
+
+defaults:
+  - scope:
+      path: "daily"
+    values:
+      layout: report
+
+markdown: kramdown
+kramdown:
+  input: GFM
