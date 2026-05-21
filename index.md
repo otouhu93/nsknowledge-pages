@@ -3,10 +3,21 @@ layout: report
 title: NSknowledge - AI News Archive
 ---
 
-# NSknowledge Daily Reports
+# NSknowledge — AI News Archive
 
-{% assign reports = site.pages | where_exp: "p", "p.path contains 'daily/'" | sort: "date" | reverse %}
+{% assign dailies = site.pages | where_exp: "p", "p.path contains 'daily/'" | sort: "date" | reverse %}
+{% assign weeklies = site.pages | where_exp: "p", "p.path contains 'weekly/'" | sort: "date" | reverse %}
 
-{% for report in reports %}
-- **[{{ report.date }}]({{ report.url | relative_url }})** ({{ report.total_articles }} articles)
+{% if weeklies.size > 0 %}
+## 週次レポート
+
+{% for report in weeklies %}
+- [{{ report.date }}]({{ report.url | relative_url }})
+{% endfor %}
+{% endif %}
+
+## 日次レポート
+
+{% for report in dailies %}
+- [{{ report.date }}]({{ report.url | relative_url }}) — {{ report.total_articles }}件
 {% endfor %}

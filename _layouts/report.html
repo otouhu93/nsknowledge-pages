@@ -3,38 +3,195 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ page.title | default: "AI News Daily Report" }}</title>
+<title>{{ page.title | default: "AI News Report" }}</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --bg-card: #1a1d27;
+    --bg-input: #252833;
+    --border: #2e3140;
+    --text: #e4e6eb;
+    --text-muted: #8b8fa3;
+    --accent: #6c8cff;
+    --accent-hover: #8da6ff;
+    --cat-new: #4ade80;
+    --cat-discuss: #facc15;
+    --cat-research: #a78bfa;
+    --cat-business: #f87171;
+    --cat-new-bg: rgba(74,222,128,0.08);
+    --cat-discuss-bg: rgba(250,204,21,0.08);
+    --cat-research-bg: rgba(167,139,250,0.08);
+    --cat-business-bg: rgba(248,113,113,0.08);
+    --cat-new-border: rgba(74,222,128,0.3);
+    --cat-discuss-border: rgba(250,204,21,0.3);
+    --cat-research-border: rgba(167,139,250,0.3);
+    --cat-business-border: rgba(248,113,113,0.3);
+  }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Roboto, sans-serif;
     line-height: 1.7;
-    color: #1a1a1a;
-    background: #fafafa;
+    color: var(--text);
+    background: var(--bg);
     padding: 16px;
-    max-width: 800px;
+    max-width: 860px;
     margin: 0 auto;
   }
-  h1 { font-size: 1.4em; margin: 16px 0 8px; border-bottom: 2px solid #2563eb; padding-bottom: 4px; }
-  h2 { font-size: 1.2em; margin: 20px 0 8px; color: #2563eb; }
-  h3 { font-size: 1.05em; margin: 16px 0 6px; }
+
+  /* ── Typography ── */
+  h1 {
+    font-size: 1.4em;
+    margin: 20px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+    color: var(--text);
+  }
+
+  h2 {
+    font-size: 1.15em;
+    margin: 24px 0 10px;
+    color: var(--accent);
+  }
+
+  h3 {
+    font-size: 1.05em;
+    margin: 16px 0 8px;
+    color: var(--text);
+  }
+
   p { margin: 6px 0; }
-  a { color: #2563eb; text-decoration: none; word-break: break-all; }
-  a:hover { text-decoration: underline; }
-  ul, ol { padding-left: 1.5em; margin: 6px 0; }
-  li { margin: 3px 0; }
-  hr { border: none; border-top: 1px solid #ddd; margin: 16px 0; }
-  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9em; }
-  th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
-  th { background: #f0f0f0; }
-  code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
-  blockquote { border-left: 3px solid #2563eb; padding-left: 12px; color: #555; margin: 8px 0; }
-  .nav { text-align: center; padding: 12px 0; font-size: 0.9em; }
-  .nav a { margin: 0 8px; }
-  strong { color: #1a1a1a; }
+
+  a { color: var(--accent); text-decoration: none; word-break: break-all; }
+  a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  strong { color: var(--text); }
+
+  /* ── Lists ── */
+  ul, ol { padding-left: 1.2em; margin: 6px 0; }
+  li { margin: 4px 0; line-height: 1.6; }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.9em;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+  }
+  th {
+    background: var(--bg-input);
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  td { background: var(--bg-card); }
+
+  /* ── Code & Blockquote ── */
+  code {
+    background: var(--bg-input);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--cat-research);
+  }
+
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding-left: 14px;
+    color: var(--text-muted);
+    margin: 10px 0;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    text-align: center;
+    padding: 14px 0;
+    font-size: 0.9em;
+  }
+  .nav a {
+    display: inline-block;
+    margin: 0 10px;
+    padding: 6px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .nav a:hover {
+    border-color: var(--accent);
+    background: var(--bg-input);
+    text-decoration: none;
+  }
+
+  /* ── Category section headers ── */
+  /* ■ 新機能 */
+  h3:has(+ ul) { margin-top: 20px; }
+
+  /* ── Category-colored article blocks ── */
+  /* The daily report uses: ### ■ 新機能 / ■ 議論 / ■ 研究 / ■ ビジネス as section markers.
+     We style the <li> items within those sections using JavaScript below. */
+
+  .cat-block {
+    background: var(--bg-card);
+    border-left: 3px solid var(--border);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 14px;
+    margin: 8px 0;
+    list-style: none;
+  }
+
+  .cat-block.cat-new       { background: var(--cat-new-bg);      border-left-color: var(--cat-new); }
+  .cat-block.cat-discuss    { background: var(--cat-discuss-bg);  border-left-color: var(--cat-discuss); }
+  .cat-block.cat-research   { background: var(--cat-research-bg); border-left-color: var(--cat-research); }
+  .cat-block.cat-business   { background: var(--cat-business-bg); border-left-color: var(--cat-business); }
+
+  /* Pickup items get slightly brighter */
+  h3[id*="pickup"] + ul li,
+  h3:has(+ ul) {
+    font-weight: normal;
+  }
+
+  /* ── Pickup section styling ── */
+  .pickup-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 12px 0;
+  }
+  .pickup-card h3 {
+    margin-top: 0;
+    font-size: 1.05em;
+  }
+
+  /* Category badge in pickup titles: [新機能] etc */
+  .badge-new      { color: var(--cat-new); }
+  .badge-discuss  { color: var(--cat-discuss); }
+  .badge-research { color: var(--cat-research); }
+  .badge-business { color: var(--cat-business); }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    body { padding: 10px; }
+    h1 { font-size: 1.2em; }
+    table { font-size: 0.8em; }
+    .cat-block { padding: 10px 12px; }
+  }
 </style>
 </head>
 <body>
+
 <div class="nav">
   <a href="{{ site.baseurl }}/">TOP</a>
 </div>
@@ -44,5 +201,77 @@
 <div class="nav">
   <a href="{{ site.baseurl }}/">TOP</a>
 </div>
+
+<script>
+// Color-code article list items based on their parent category section header.
+(function() {
+  const categoryMap = {
+    '新機能': 'cat-new',
+    '議論':   'cat-discuss',
+    '研究':   'cat-research',
+    'ビジネス': 'cat-business',
+  };
+
+  // Find all h3 that contain category markers (■ 新機能, ■ 議論, etc.)
+  document.querySelectorAll('h3').forEach(h3 => {
+    const text = h3.textContent;
+    for (const [cat, cls] of Object.entries(categoryMap)) {
+      if (text.includes(cat)) {
+        // Find the next <ul> sibling and style its <li> items
+        let next = h3.nextElementSibling;
+        while (next) {
+          if (next.tagName === 'UL') {
+            next.querySelectorAll(':scope > li').forEach(li => {
+              li.classList.add('cat-block', cls);
+            });
+            break;
+          }
+          // Stop if we hit another heading
+          if (next.tagName && next.tagName.match(/^H[1-3]$/)) break;
+          next = next.nextElementSibling;
+        }
+
+        // Also color the h3 itself
+        h3.style.color = getComputedStyle(document.documentElement)
+          .getPropertyValue('--' + cls.replace('cat-', 'cat-'));
+
+        break;
+      }
+    }
+  });
+
+  // Style [カテゴリ] badges in pickup titles
+  document.querySelectorAll('h3').forEach(h3 => {
+    const html = h3.innerHTML;
+    for (const [cat, cls] of Object.entries(categoryMap)) {
+      if (html.includes('[' + cat + ']')) {
+        h3.innerHTML = html.replace(
+          '[' + cat + ']',
+          '<span class="badge-' + cls.replace('cat-', '') + '">[' + cat + ']</span>'
+        );
+        break;
+      }
+    }
+  });
+
+  // Wrap pickup card sections (### N. [カテゴリ] タイトル + paragraphs)
+  document.querySelectorAll('h3').forEach(h3 => {
+    if (/^\d+\./.test(h3.textContent.trim())) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'pickup-card';
+      h3.parentNode.insertBefore(wrapper, h3);
+      wrapper.appendChild(h3);
+
+      let next = wrapper.nextElementSibling;
+      while (next && next.tagName === 'P') {
+        const following = next.nextElementSibling;
+        wrapper.appendChild(next);
+        next = following;
+      }
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
