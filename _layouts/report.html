@@ -181,6 +181,80 @@
   .badge-research { color: var(--cat-research); }
   .badge-business { color: var(--cat-business); }
 
+  /* ── Bookmark ── */
+  .bm-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1em;
+    cursor: pointer;
+    padding: 0 4px;
+    vertical-align: middle;
+    transition: color 0.15s;
+  }
+  .bm-btn:hover { color: var(--cat-discuss); }
+  .bm-btn.active { color: var(--cat-discuss); }
+
+  .bm-picker {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    padding: 16px;
+    z-index: 300;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .bm-picker select, .bm-picker input {
+    width: 100%;
+    padding: 8px;
+    margin: 4px 0;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.9em;
+  }
+  .bm-picker-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .bm-picker-actions button {
+    flex: 1; padding: 8px;
+    border-radius: 6px; border: none;
+    font-size: 0.9em; cursor: pointer;
+  }
+  .bm-save { background: var(--accent); color: #fff; }
+  .bm-cancel { background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border) !important; }
+
+  /* Bookmarks page */
+  .bm-page-folders { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .bm-folder-tab {
+    padding: 4px 12px; border-radius: 6px;
+    background: var(--bg-input); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 0.85em; cursor: pointer;
+  }
+  .bm-folder-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .bm-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .bm-item-title { font-weight: 600; margin-bottom: 4px; }
+  .bm-item-title a { color: var(--text); }
+  .bm-item-title a:hover { color: var(--accent); }
+  .bm-item-meta { font-size: 0.8em; color: var(--text-muted); }
+  .bm-item-actions { margin-top: 6px; }
+  .bm-item-actions button {
+    padding: 3px 10px; font-size: 0.8em;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text-muted); cursor: pointer;
+  }
+  .bm-item-actions .bm-del { color: var(--cat-business); }
+  .bm-export-bar { text-align: right; margin-bottom: 12px; }
+  .bm-export-bar button { padding: 6px 14px; font-size: 0.85em; }
+
   /* ── Responsive ── */
   @media (max-width: 600px) {
     body { padding: 10px; }
@@ -194,12 +268,14 @@
 
 <div class="nav">
   <a href="{{ site.baseurl }}/">TOP</a>
+  <a href="{{ site.baseurl }}/bookmarks">ブックマーク</a>
 </div>
 
 {{ content }}
 
 <div class="nav">
   <a href="{{ site.baseurl }}/">TOP</a>
+  <a href="{{ site.baseurl }}/bookmarks">ブックマーク</a>
 </div>
 
 <script>
@@ -273,5 +349,107 @@
 })();
 </script>
 
+<script>
+// ── Bookmark System (localStorage) ──
+const BM = {
+  KEY: 'nsknowledge-bookmarks',
+  getAll() { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); },
+  save(list) { localStorage.setItem(this.KEY, JSON.stringify(list)); },
+  has(url) { return this.getAll().some(b => b.url === url); },
+  add(item, folder) {
+    const list = this.getAll();
+    if (!list.find(b => b.url === item.url)) {
+      list.push({ ...item, folder: folder || '未分類', savedAt: new Date().toISOString() });
+      this.save(list);
+    }
+  },
+  remove(url) { this.save(this.getAll().filter(b => b.url !== url)); },
+  updateFolder(url, folder) {
+    const list = this.getAll();
+    const b = list.find(x => x.url === url);
+    if (b) { b.folder = folder; this.save(list); }
+  },
+  folders() { return [...new Set(this.getAll().map(b => b.folder))].sort(); }
+};
+
+// Add bookmark buttons to each article entry
+(function initBookmarkButtons() {
+  // Articles in category lists: <li> with <strong> and <a>
+  document.querySelectorAll('li').forEach(li => {
+    const strong = li.querySelector('strong');
+    const link = li.querySelector('a');
+    if (!strong || !link) return;
+    const url = link.getAttribute('href');
+    if (!url || url.startsWith('#')) return;
+    const title = strong.textContent.trim();
+    const source = link.textContent.trim();
+    addStar(li, { title, url, source }, 'prepend');
+  });
+
+  // Pickup cards: find <a> inside .pickup-card
+  document.querySelectorAll('.pickup-card').forEach(card => {
+    const h3 = card.querySelector('h3');
+    const link = card.querySelector('a');
+    if (!h3 || !link) return;
+    const title = h3.textContent.replace(/^\d+\.\s*\[.*?\]\s*/, '').split('—')[0].trim();
+    const url = link.getAttribute('href');
+    const source = link.textContent.trim();
+    addStar(h3, { title, url, source }, 'append');
+  });
+})();
+
+function addStar(el, article, position) {
+  const btn = document.createElement('button');
+  btn.className = 'bm-btn' + (BM.has(article.url) ? ' active' : '');
+  btn.innerHTML = BM.has(article.url) ? '★' : '☆';
+  btn.title = 'ブックマーク';
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (BM.has(article.url)) {
+      BM.remove(article.url);
+      btn.innerHTML = '☆';
+      btn.classList.remove('active');
+    } else {
+      openPicker(article, btn);
+    }
+  });
+  if (position === 'prepend') el.prepend(btn);
+  else el.appendChild(btn);
+}
+
+function openPicker(article, btn) {
+  document.querySelectorAll('.bm-picker').forEach(p => p.remove());
+  const folders = BM.folders();
+  if (!folders.includes('未分類')) folders.unshift('未分類');
+
+  const picker = document.createElement('div');
+  picker.className = 'bm-picker';
+  picker.innerHTML = `
+    <div style="font-weight:600;margin-bottom:6px">${article.title.substring(0, 60)}</div>
+    <select class="bm-folder-sel">
+      ${folders.map(f => '<option value="' + f + '">' + f + '</option>').join('')}
+    </select>
+    <input type="text" class="bm-new-folder" placeholder="新規フォルダ名">
+    <div class="bm-picker-actions">
+      <button class="bm-save">保存</button>
+      <button class="bm-cancel">取消</button>
+    </div>
+  `;
+  document.body.appendChild(picker);
+
+  picker.querySelector('.bm-save').addEventListener('click', () => {
+    const nf = picker.querySelector('.bm-new-folder').value.trim();
+    const folder = nf || picker.querySelector('.bm-folder-sel').value;
+    BM.add(article, folder);
+    btn.innerHTML = '★';
+    btn.classList.add('active');
+    picker.remove();
+  });
+  picker.querySelector('.bm-cancel').addEventListener('click', () => picker.remove());
+}
+</script>
+
 </body>
 </html>
+
