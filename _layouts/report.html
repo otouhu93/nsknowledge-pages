@@ -266,6 +266,30 @@
 </head>
 <body>
 
+<script>
+// Bookmark data layer — must load BEFORE page content so bookmarks.md can use BM
+const BM = {
+  KEY: 'nsknowledge-bookmarks',
+  getAll() { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); },
+  save(list) { localStorage.setItem(this.KEY, JSON.stringify(list)); },
+  has(url) { return this.getAll().some(b => b.url === url); },
+  add(item, folder) {
+    const list = this.getAll();
+    if (!list.find(b => b.url === item.url)) {
+      list.push({ ...item, folder: folder || '未分類', savedAt: new Date().toISOString() });
+      this.save(list);
+    }
+  },
+  remove(url) { this.save(this.getAll().filter(b => b.url !== url)); },
+  updateFolder(url, folder) {
+    const list = this.getAll();
+    const b = list.find(x => x.url === url);
+    if (b) { b.folder = folder; this.save(list); }
+  },
+  folders() { return [...new Set(this.getAll().map(b => b.folder))].sort(); }
+};
+</script>
+
 <div class="nav">
   <a href="{{ site.baseurl }}/">TOP</a>
   <a href="{{ site.baseurl }}/bookmarks">ブックマーク</a>
@@ -350,27 +374,7 @@
 </script>
 
 <script>
-// ── Bookmark System (localStorage) ──
-const BM = {
-  KEY: 'nsknowledge-bookmarks',
-  getAll() { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); },
-  save(list) { localStorage.setItem(this.KEY, JSON.stringify(list)); },
-  has(url) { return this.getAll().some(b => b.url === url); },
-  add(item, folder) {
-    const list = this.getAll();
-    if (!list.find(b => b.url === item.url)) {
-      list.push({ ...item, folder: folder || '未分類', savedAt: new Date().toISOString() });
-      this.save(list);
-    }
-  },
-  remove(url) { this.save(this.getAll().filter(b => b.url !== url)); },
-  updateFolder(url, folder) {
-    const list = this.getAll();
-    const b = list.find(x => x.url === url);
-    if (b) { b.folder = folder; this.save(list); }
-  },
-  folders() { return [...new Set(this.getAll().map(b => b.folder))].sort(); }
-};
+// ── Bookmark UI (BM data layer is in <head>) ──
 
 // Add bookmark buttons to each article entry
 (function initBookmarkButtons() {
