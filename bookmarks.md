@@ -6,6 +6,7 @@ title: Bookmarks
 <h1>ブックマーク</h1>
 
 <div class="bm-export-bar">
+  <button onclick="BM.sendAllToObsidian()" style="background:#7c3aed;color:#fff">Obsidian に送信</button>
   <button onclick="exportBookmarks()">JSON エクスポート</button>
 </div>
 
@@ -35,6 +36,7 @@ function renderBookmarksPage(filterFolder) {
       <div class="bm-item-title"><a href="${b.url}" target="_blank" rel="noopener">${b.title}</a></div>
       <div class="bm-item-meta">${b.source || ''} | ${b.folder} | ${(b.savedAt || '').slice(0, 10)}</div>
       <div class="bm-item-actions">
+        <button onclick="sendOneToObsidian('${b.url.replace(/'/g, "\\'")}')" style="background:#7c3aed;color:#fff;font-size:0.8em">Obs</button>
         <button onclick="moveBookmark('${b.url.replace(/'/g, "\\'")}')">移動</button>
         <button class="bm-del" onclick="removeBookmark('${b.url.replace(/'/g, "\\'")}')">削除</button>
       </div>
@@ -55,6 +57,11 @@ function moveBookmark(url) {
     BM.updateFolder(url, folder.trim());
     renderBookmarksPage();
   }
+}
+
+function sendOneToObsidian(url) {
+  const b = BM.getAll().find(x => x.url === url);
+  if (b) BM.sendToObsidian(b);
 }
 
 function exportBookmarks() {

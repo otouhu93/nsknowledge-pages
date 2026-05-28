@@ -270,6 +270,8 @@
 // Bookmark data layer — must load BEFORE page content so bookmarks.md can use BM
 const BM = {
   KEY: 'nsknowledge-bookmarks',
+  VAULT: 'Obsidian',
+  OBS_FOLDER: '05 Web Clips/NSknowledge',
   getAll() { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); },
   save(list) { localStorage.setItem(this.KEY, JSON.stringify(list)); },
   has(url) { return this.getAll().some(b => b.url === url); },
@@ -286,7 +288,80 @@ const BM = {
     const b = list.find(x => x.url === url);
     if (b) { b.folder = folder; this.save(list); }
   },
-  folders() { return [...new Set(this.getAll().map(b => b.folder))].sort(); }
+  folders() { return [...new Set(this.getAll().map(b => b.folder))].sort(); },
+
+  // Obsidian integration
+  _toMarkdown(b) {
+    const date = (b.savedAt || new Date().toISOString()).slice(0, 10);
+    const safeTitle = (b.title || 'Untitled').replace(/[\\/:*?"<>|]/g, '_');
+    const lines = [
+      '---',
+      'date: ' + date,
+      'source: ' + (b.source || ''),
+      'url: ' + (b.url || ''),
+      'folder: ' + (b.folder || '未分類'),
+      'tags: [nsknowledge, bookmark]',
+      '---',
+      '',
+      '# ' + (b.title || 'Untitled'),
+      '',
+      '> Source: [' + (b.source || 'link') + '](' + b.url + ')',
+      '',
+      b.summary ? b.summary + '\n' : '',
+    ];
+    return { content: lines.join('\n'), filename: safeTitle, date };
+  },
+
+  sendToObsidian(bookmark) {
+    const { content, filename, date } = this._toMarkdown(bookmark);
+    const filePath = this.OBS_FOLDER + '/' + date + '_' + filename;
+    const uri = 'obsidian://new?vault=' + encodeURIComponent(this.VAULT)
+      + '&file=' + encodeURIComponent(filePath)
+      + '&content=' + encodeURIComponent(content);
+    window.open(uri, '_self');
+  },
+
+  sendAllToObsidian() {
+    const all = this.getAll();
+    if (all.length === 0) { alert('ブックマークがありません'); return; }
+    // Build a single summary note with all bookmarks
+    const date = new Date().toISOString().slice(0, 10);
+    const byFolder = {};
+    all.forEach(b => {
+      const f = b.folder || '未分類';
+      if (!byFolder[f]) byFolder[f] = [];
+      byFolder[f].push(b);
+    });
+    const lines = [
+      '---',
+      'date: ' + date,
+      'type: bookmark-export',
+      'count: ' + all.length,
+      'tags: [nsknowledge, bookmark]',
+      '---',
+      '',
+      '# NSknowledge Bookmarks',
+      '',
+    ];
+    for (const [folder, items] of Object.entries(byFolder)) {
+      lines.push('## ' + folder);
+      lines.push('');
+      items.forEach(b => {
+        const saved = (b.savedAt || '').slice(0, 10);
+        lines.push('- **[' + b.title + '](' + b.url + ')**');
+        if (b.source) lines.push('  - Source: ' + b.source + (saved ? ' | ' + saved : ''));
+        if (b.summary) lines.push('  - ' + b.summary.slice(0, 200));
+      });
+      lines.push('');
+    }
+    const content = lines.join('\n');
+    const filePath = this.OBS_FOLDER + '/bookmarks_' + date;
+    const uri = 'obsidian://new?vault=' + encodeURIComponent(this.VAULT)
+      + '&file=' + encodeURIComponent(filePath)
+      + '&content=' + encodeURIComponent(content)
+      + '&overwrite';
+    window.open(uri, '_self');
+  }
 };
 </script>
 
