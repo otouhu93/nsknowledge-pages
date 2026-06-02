@@ -467,22 +467,28 @@ const BM = {
     addStar(li, { title, url, source }, 'prepend');
   });
 
-  // Weekly: list items with [カテゴリ] prefix and URL in 出典 line
+  // Weekly: list items with [カテゴリ] prefix — extract URL from <a> or plain text
   document.querySelectorAll('li').forEach(li => {
-    if (li.querySelector('.bm-btn')) return; // already has star from above
+    if (li.querySelector('.bm-btn')) return; // already has star
     const text = li.textContent.trim();
     const m = text.match(catPattern);
     if (!m) return;
+    // Try <a> first, fallback to URL regex in text
+    let url = '';
     const link = li.querySelector('a');
-    if (!link) return;
-    const url = link.getAttribute('href');
-    if (!url || url.startsWith('#')) return;
-    // Extract title: text between [カテゴリ] and 出典:
+    if (link) {
+      url = link.getAttribute('href') || '';
+    }
+    if (!url || url.startsWith('#')) {
+      const urlMatch = text.match(/https?:\/\/[^\s\)）]+/);
+      if (urlMatch) url = urlMatch[0];
+    }
+    if (!url) return;
+    // Title: text between [カテゴリ] and 出典:
     const afterCat = text.replace(catPattern, '');
     const title = afterCat.split(/\s*出典[:：]/)[0].trim();
     if (!title || title.length < 5) return;
-    // Extract source name from 出典: line
-    const srcMatch = afterCat.match(/出典[:：]\s*(.+?)\s*[\(（]/);
+    const srcMatch = afterCat.match(/出典[:：]\s*(.+?)\s*[\(（(https?:)]/);
     const source = srcMatch ? srcMatch[1].trim() : '';
     addStar(li, { title, url, source }, 'prepend');
   });
