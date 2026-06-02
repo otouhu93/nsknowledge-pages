@@ -453,7 +453,9 @@ const BM = {
 
 // Add bookmark buttons to each article entry
 (function initBookmarkButtons() {
-  // Articles in category lists: <li> with <strong> and <a>
+  const catPattern = /^\[(.+?)\]\s*/;
+
+  // Daily: category list items — <li> with <strong> (title) and <a> (source link)
   document.querySelectorAll('li').forEach(li => {
     const strong = li.querySelector('strong');
     const link = li.querySelector('a');
@@ -462,6 +464,26 @@ const BM = {
     if (!url || url.startsWith('#')) return;
     const title = strong.textContent.trim();
     const source = link.textContent.trim();
+    addStar(li, { title, url, source }, 'prepend');
+  });
+
+  // Weekly: list items with [カテゴリ] prefix and URL in 出典 line
+  document.querySelectorAll('li').forEach(li => {
+    if (li.querySelector('.bm-btn')) return; // already has star from above
+    const text = li.textContent.trim();
+    const m = text.match(catPattern);
+    if (!m) return;
+    const link = li.querySelector('a');
+    if (!link) return;
+    const url = link.getAttribute('href');
+    if (!url || url.startsWith('#')) return;
+    // Extract title: text between [カテゴリ] and 出典:
+    const afterCat = text.replace(catPattern, '');
+    const title = afterCat.split(/\s*出典[:：]/)[0].trim();
+    if (!title || title.length < 5) return;
+    // Extract source name from 出典: line
+    const srcMatch = afterCat.match(/出典[:：]\s*(.+?)\s*[\(（]/);
+    const source = srcMatch ? srcMatch[1].trim() : '';
     addStar(li, { title, url, source }, 'prepend');
   });
 
