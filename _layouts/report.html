@@ -271,7 +271,7 @@
 const BM = {
   KEY: 'nsknowledge-bookmarks',
   VAULT: 'Obsidian',
-  OBS_FOLDER: '05 Web Clips/NSknowledge',
+  OBS_FOLDER: 'NSknowledge/bookmarks',
   getAll() { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); },
   save(list) { localStorage.setItem(this.KEY, JSON.stringify(list)); },
   has(url) { return this.getAll().some(b => b.url === url); },
